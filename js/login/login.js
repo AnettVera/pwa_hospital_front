@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const password = passwordInput.value.trim();
 
         if (!username || !password) {
-            alert("Por favor complete todos los campos");
+            Toast.show("Porfavor complete todos los campos", 'error');
             return;
         }
 
@@ -38,8 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const role = decodedToken.role;
                     localStorage.setItem("role", role);
 
-                    alert("Inicio de sesión exitoso ¡Bienvenido!");
-
+                    Toast.show("Inicio de sesión exitoso ¡Bienvenido!", 'success');
                     if(role === "ADMIN") {
                         window.location.href = "/modules/admin/dashboard.html";
                     } else if(role === "NURSE") {
@@ -48,13 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.location.href = "/index.html";
                     }
                 } else {
-                    alert("Credenciales incorrectas");
+                    Toast.show("Credenciales inválidas", 'error');
                 }
             } else {
-                alert("Usuario o contraseña incorrectos. Por favor intente nuevamente.");
+                Toast.show("Credenciales inválidas", 'error');
             }
         } catch (error) {
-            alert("Error de conexión con el servidor. Por favor intente nuevamente.");
+            Toast.show("Credenciales inválidas", 'error');
             console.error("Error de conexión con el servidor:", error);
         }
         
