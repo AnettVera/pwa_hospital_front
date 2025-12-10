@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const API_URL = "http://localhost:8080/api"; // Ajusta tu puerto (8080 Java)
+const API_URL = "http://localhost:8000/api"; 
 
 // Elementos DOM
 const scanScreen = document.getElementById('scanScreen');
@@ -268,3 +268,4 @@ logoutButton.addEventListener("click", () => {
         // Nota: El deviceToken NO se borra, es la identidad del celular.
     }
 });
+
