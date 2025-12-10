@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Info PWA -->
+    <link rel="manifest" href="../../manifest.json">
+    <meta name="theme-color" content="#E6EBF5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="../../img/180.png" sizes="180x180">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="../../css/patient.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <title>Paciente - Panel</title>
+</head>
+
+<body>
+
+    <!-- Pantalla 1: Escanear QR (Inicial) -->
+    <div class="container-fluid vh-100 d-flex align-items-center justify-content-center" id="scanScreen">
+        <div class="row w-100 justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+                <div class="card card-custom">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <!-- Logo -->
+                        <div class="mb-4">
+                            <i class="bi bi-hospital text-primary hospital-logo"
+                                style="font-size: clamp(3rem, 15vw, 5rem);"></i>
+                        </div>
+
+                        <!-- Título -->
+                        <h1 class="fw-bold mb-3" style="font-size: clamp(1.5rem, 5vw, 2rem);">
+                            Ayuda Hospitalaria
+                        </h1>
+
+                        <!-- Descripción -->
+                        <p class="text-muted mb-4" style="font-size: clamp(0.9rem, 3vw, 1rem);">
+                            Escanee el código QR de su cama para vincular su dispositivo y solicitar asistencia.
+                        </p>
+
+                        <!-- Botón Escanear -->
+                        <button class="btn btn-primary-custom btn-lg w-100 py-3" id="btnOpenScan" style="color:white;">
+                            <i class="bi bi-qr-code-scan me-2" style="color:white;"></i>
+                            Escanear QR
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Formulario de escaneo -->
+    <div class="modal fade" id="modalScan" tabindex="-1" aria-labelledby="modalScanLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="modalScanLabel">
+                            Escanear Código QR
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            Apunte la cámara de su dispositivo al código QR de su cama.
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Camera Preview -->
+
+
+                    <div class="camera-preview mb-4 text-center">
+                        <video id="camera" class="w-100 rounded" autoplay playsinline></video>
+                        <canvas id="qrCanvas" style="display:none;"></canvas>
+                    </div>
+
+                    <!-- Botón Simular -->
+                    <button class="btn btn-primary-custom w-100 py-2" id="btnSimulateScan" style="color:white;">
+                        <i class="bi bi-check-circle me-2" style="color:white;"></i>
+                        Escanear codigo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla 2: Panel del Paciente -->
+    <div class="container-fluid vh-100 d-flex align-items-center justify-content-center d-none-custom"
+        id="patientScreen">
+        <div class="row w-100 justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+                <div class="card card-custom position-relative">
+
+                    <!--  Botón Cerrar Sesión en la esquina derecha -->
+                    <button class="btn btn-outline-grey position-absolute top-0 end-0 m-3 px-3 py-1" id="logoutButton">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+
+                    <div class="card-body p-4 p-md-5 text-center">
+
+                        <!-- Icono de cama -->
+                        <i class="bi bi-hospital-bed display-1 text-primary mb-3"></i>
+
+                        <!-- Nombre de la cama -->
+                        <h2 class="fw-bold mb-2" id="bedName" style="font-size: clamp(1.5rem, 5vw, 2rem);">
+                            Cama 101
+                        </h2>
+
+                        <!-- Info de la cama -->
+                        <p class="text-muted mb-4" id="bedInfo" style="font-size: clamp(0.9rem, 3vw, 1.1rem);">
+                            Habitación 1 - Cardiología
+                        </p>
+
+                        <!-- Botón de Ayuda -->
+                        <div class="d-flex justify-content-center my-4">
+                            <button class="help-button" id="helpButton">
+                                <span id="helpButtonText">Ayuda</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Footer info -->
+                <p class="text-center text-muted mt-4 mb-0" id="bedFooter"
+                    style="font-size: clamp(0.85rem, 2.5vw, 0.95rem);">
+                    <i class="bi bi-link-45deg me-1"></i>
+                    Vinculado a la Cama 101
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../../js/jsQR.js"></script>
+    <script src="../../js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/app.js"></script>
+    <script src="../../js/patient/patient.js"></script>
+
+</body>
+
+</html>

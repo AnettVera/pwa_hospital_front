@@ -1,0 +1,22 @@
+{
+  "name": "Ayuda Hospitalaria",
+  "short_name": "Hospital",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#344966",
+  "theme_color": "#E6EBF5",
+  "description": "Una aplicación para solicitar ayuda en el hospital",
+  "icons": [
+    {
+      "src": "./img/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./img/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

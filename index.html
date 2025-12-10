@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Info PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E6EBF5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="img/180.png" sizes="180x180">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link reel="stylesheet" href="./alerts/toast.css"/>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="./css/styles.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Bienvenido - Hospital</title>
+</head>
+
+<body>
+
+    <div class="login-container">
+          <div id="toast-container" class="toast-container"></div>
+
+        <div class="login-card text-center">
+
+            <img src="img/logo.jpeg" alt="Logo" class="login-logo">
+
+            <h1 class="login-title">Hospital</h1>
+            <p class="login-subtitle">Seleccione cómo desea ingresar al sistema</p>
+
+            <div class="d-grid gap-3 mt-4">
+                <a href="modules/patient/patient.html" class="btn btn-primary-custom">Ingresar como paciente</a>
+                <a href="modules/auth/login.html" class="btn btn-register text-white">Ingresar como personal del hospital</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="./alerts/toastConfig.js"></script>
+    <script src="./js/app.js"></script>
+    <script>
+    (function(){
+        'use strict';
+        // Enhance the two index buttons with a small transition and keyboard support
+        var patientBtn = document.querySelector('a[href="modules/patient/patient.html"]');
+        var staffBtn = document.querySelector('a[href="modules/auth/login.html"]');
+
+        function enhance(el, target){
+            if (!el) return;
+            el.setAttribute('role','button');
+            el.setAttribute('tabindex','0');
+            el.addEventListener('click', function(e){
+                e.preventDefault();
+                // subtle visual feedback before navigating
+                document.body.classList.add('page-transition');
+                setTimeout(function(){ window.location.href = target; }, 180);
+            });
+            el.addEventListener('keydown', function(e){
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+            });
+        }
+
+        enhance(patientBtn, 'modules/patient/patient.html');
+        enhance(staffBtn, 'modules/auth/login.html');
+
+        // Inject tiny CSS for the transition so index keeps coherent styles
+        var css = '\nbody.page-transition { transition: opacity .18s ease; opacity: .45; }\n.login-card { transition: transform .18s ease; }\n.login-card.shrink { transform: scale(.995); }\n';
+        var style = document.createElement('style'); style.appendChild(document.createTextNode(css));
+        document.head.appendChild(style);
+    })();
+    </script>
+
+</body>
+</html>

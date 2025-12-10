@@ -1,0 +1,131 @@
+ :root {
+            --background: #EDF0FF;
+            --foreground: #0A1647;
+            --primary: #0A1647;
+            --accent: #344966;
+            --secondary: #E6EBF5;
+            --border: #DCE1E8;
+            --card: #FFFFFF;
+            --radius: 14px;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--foreground);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Botones personalizados */
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background: #0d1b5f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(10, 22, 71, 0.2);
+        }
+
+        /* Cards */
+        .card-custom {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 6px 25px rgba(10, 22, 71, 0.08);
+            border: none;
+        }
+
+        /* Modal personalizado */
+        .modal-content {
+            border-radius: var(--radius);
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Botón de ayuda circular */
+        .help-button {
+            width: clamp(140px, 40vw, 180px);
+            height: clamp(140px, 40vw, 180px);
+            border-radius: 50%;
+            border: none;
+            background: #4C597A;
+            color: white;
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
+            font-weight: 600;
+            box-shadow: 0 6px 30px rgba(76, 89, 122, 0.3);
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .help-button:active {
+            transform: scale(0.95);
+        }
+
+        .help-button.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .help-button::after {
+            content: "";
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            border-radius: 50%;
+            border: 4px solid #334867;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+        }
+
+        .help-button.animating::after {
+            animation: pulse 15s linear forwards;
+        }
+
+        @keyframes pulse {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.9); 
+                opacity: 0.4; 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1.4); 
+                opacity: 0; 
+            }
+        }
+
+        /* Camera preview */
+        .camera-preview {
+            background: var(--secondary);
+            border-radius: var(--radius);
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Logo hospital */
+        .hospital-logo {
+            width: clamp(60px, 20vw, 90px);
+        }
+
+        /* Ajustes responsive */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+        }
+
+        /* Ocultar elementos */
+        .d-none-custom {
+            display: none !important;
+        }

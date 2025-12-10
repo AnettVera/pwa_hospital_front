@@ -1,0 +1,540 @@
+/* ===========================
+   Variables de color
+=========================== */
+:root {
+    --background: #EDF0FF;
+    --foreground: #0A1647;
+    --primary: #0A1647;
+    --accent: #344966;
+    --secondary: #E6EBF5;
+    --border: #DCE1E8;
+    --card: #FFFFFF;
+
+    --radius: 14px;
+}
+
+/* ===========================
+   Reset & Base
+=========================== */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===========================
+   Contenedor Centro
+=========================== */
+.login-container {
+    max-width: 380px;
+    margin: 0 auto;
+    padding: 2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* ===========================
+   Tarjeta
+=========================== */
+.login-card {
+    background: var(--card);
+    padding: 2.2rem 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 6px 25px rgba(10, 22, 71, 0.08);
+    text-align: center;
+}
+
+/* Logo */
+.login-logo {
+    width: 90px;
+    margin-bottom: 1rem;
+}
+
+/* Títulos */
+.login-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.login-subtitle {
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-bottom: 1.8rem;
+}
+
+/* ===========================
+   Inputs
+=========================== */
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--foreground);
+    text-align: left;
+}
+
+.custom-input {
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    color: var(--foreground);
+}
+
+.custom-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.1rem rgba(10, 22, 71, 0.15);
+}
+
+/* ===========================
+   Botón
+=========================== */
+.btn-primary-custom {
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.btn-primary-custom:hover {
+    background: #0d1b5f;
+    color: white;
+}
+
+/* ===========================
+   Demo text
+=========================== */
+.demo-text {
+    margin-top: 1.4rem;
+    font-size: 0.85rem;
+    color: var(--accent);
+    line-height: 1.4rem;
+}
+
+/* ===========================
+   Vista Desktop
+=========================== */
+@media (min-width: 768px) {
+    .login-container {
+        max-width: 480px;
+    }
+
+    .login-card {
+        padding: 3rem 2.4rem;
+        border-radius: 18px;
+    }
+}
+
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+.sidebar {
+    width: 250px;
+    background: var(--card); /* Blanco */
+    height: 100vh;
+    padding: 1.5rem 1rem;
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.sidebar-logo {
+    width: 45px;
+    margin-right: 0.6rem;
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+.sidebar-menu {
+    margin-top: 2rem;
+    padding: 0;
+    list-style: none;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    color: var(--foreground);
+    cursor: pointer;
+    margin-bottom: 0.2rem;
+    transition: 0.2s;
+}
+.sidebar-item {
+    text-decoration: none; /* Keep anchor visuals consistent */
+    display: flex; /* For anchors, ensure layout matches li */
+}
+
+.sidebar-item i {
+    font-size: 1.2rem;
+    margin-right: 0.8rem;
+    color: var(--foreground);
+}
+
+.sidebar-item:hover {
+    background: var(--secondary);
+}
+
+.sidebar-item.active {
+    background: var(--secondary);
+    font-weight: 600;
+}
+
+/* Cerrar sesión */
+.logout {
+    position: absolute;
+    bottom: 20px;
+    color: var(--foreground);
+    font-weight: 600;
+
+    background: none;      /* quita el fondo */
+    border: none;          /* quita borde */
+    padding: 0;            /* sin padding */
+    margin: 0;             /* sin margen */
+    cursor: pointer;       /* que parezca clickable */
+    font-size: inherit;    /* mantiene tamaño del texto */
+    display: flex;
+    align-items: center;
+    gap: 6px;              /* separación del icono */
+}
+
+.logout-btn {
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: var(--foreground);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* ===========================
+   CONTENIDO PRINCIPAL
+=========================== */
+
+.main-content {
+    margin-left: 250px;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.8rem;
+    color: var(--foreground);
+}
+
+/* Tarjetas de métricas */
+.metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 3px 14px rgba(10, 22, 71, 0.06);
+}
+
+.metric-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+/* Línea divisora */
+.divider {
+    border-bottom: 1px solid var(--border);
+    margin: 2rem 0 1rem;
+}
+
+/* Habitaciones */
+.room-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    text-align: center;
+    border-radius: var(--radius);
+    width: 140px;
+}
+
+.room-status {
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-occupied {
+    background: #ffe5e5;
+    color: #c40000;
+}
+
+.status-available {
+    background: var(--secondary);
+    color: var(--foreground);
+}
+
+
+
+/* ====== TEXTOS ====== */
+.section-title {
+    color: var(--foreground);
+    font-weight: 700;
+}
+
+.section-subtitle {
+    color: var(--accent);
+    font-size: 0.95rem;
+}
+
+/* ====== TARJETA CONTENEDORA ====== */
+.card-panel {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+/* ====== TABLA ====== */
+.patient-table thead th {
+    color: var(--foreground);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+}
+
+.patient-table tbody td {
+    padding: 14px 12px;
+    color: var(--foreground);
+}
+
+.patient-table tbody tr {
+    background: #fff;
+    transition: 0.2s ease;
+}
+
+.patient-table tbody tr:hover {
+    background: var(--secondary);
+}
+
+.row-highlight {
+    background: #eaf0ff !important;
+}
+
+/* ====== BOTÓN REGISTRAR ====== */
+.btn-register {
+    background: var(--primary);
+    border: none;
+    padding: 10px 18px;
+    font-weight: 600;
+}
+
+.btn-register:hover {
+    background: #081138;
+}
+
+/* ====== CAMAS (BEDS) ====== */
+.beds-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 6px 25px rgba(10, 22, 71, 0.06);
+}
+
+.beds-table thead th {
+    color: var(--accent);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+}
+
+.beds-table tbody tr td {
+    padding: 1rem 0.75rem;
+}
+
+.beds-table tbody tr + tr td {
+    border-top: 1px solid var(--secondary);
+}
+
+.beds-id {
+    color: var(--foreground);
+    font-weight: 600;
+}
+
+.beds-room {
+    color: var(--foreground);
+}
+
+.state-badge {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.state-occupied {
+    background: #f8d7da;
+    color: #7c1a21;
+}
+
+.state-available {
+    background: #dee6ff;
+    color: #0A1647;
+}
+
+.btn-qr {
+    background: #e6ebff;
+    color: #0A1647;
+    border: 1px solid #cfd7ff;
+    border-radius: 12px;
+    padding: 0.45rem 0.9rem;
+    font-weight: 600;
+}
+
+.btn-qr:hover {
+    background: #dbe3ff;
+    color: #0A1647;
+}
+
+/* ====== MODAL ====== */
+.modal-custom {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 5px;
+}
+
+.input-custom {
+    background: #eef2ff;
+    border: 1px solid var(--border);
+    padding: 10px;
+}
+
+.input-custom:focus {
+    background: #e5eaff;
+    border-color: var(--primary);
+    box-shadow: none;
+}
+
+.modal-description {
+    color: var(--accent);
+    margin-bottom: 15px;
+    font-size: 0.92rem;
+}
+
+.status-badge {
+    background: var(--secondary);
+    color: var(--foreground);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.btn-qr {
+    background-color: #334867 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    width: 100%;
+    padding: 14px 20px;
+}
+
+.btn-qr:hover {
+    background-color: #2b3a55 !important;
+}
+
+
+.help-button {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: none;
+    background-color: #4C597A;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.15);
+    position: relative;
+    transition: 0.3s ease-in-out;
+}
+
+.help-button.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.help-button::after {
+    content: "";
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    border: 4px solid #334867;
+    top: -15px;
+    left: -15px;
+    opacity: 0;
+    animation: pulse 15s linear forwards;
+}
+
+.help-button.no-anim::after {
+    animation: none !important;
+    opacity: 0 !important;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.3; }
+    100% { transform: scale(1.25); opacity: 0; }
+}
+
+
+.btn-edit-custom{
+    background-color: var(--accent);
+    color: var(--background);
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none
+}
+.btn-edit-custom:hover {
+    background-color: #dce3f2; /* Un poco más oscuro que var(--secondary) */
+    background-color: var(--accent);
+    opacity: 0.85;
+
+ }
+
+ .btn-delete-custom {
+    background-color: var(--accent);
+    color: var(--background);
+    background-color: var(--primary);
+    padding: 8px 16px;
+    border-radius: 3px;
+    border: none;
+ }
+ 
+ .btn-delete-custom:hover {
+    background-color: #ffdbdb; /* Un poco más oscuro */
+    background-color: var(--primary);
+    opacity: 0.85;
+ }
