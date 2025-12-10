@@ -38,6 +38,36 @@ const APP_SHELL = [
     './modules/nurse/nurse-content.html',
 ];
 
+
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+
+firebase.initializeApp({
+    apiKey: "AIzaSyCXN0yk02hE5xHtHFQr3YOayME232YDHEE",
+    authDomain: "storageintdb.firebaseapp.com",
+    projectId: "storageintdb",
+    storageBucket: "storageintdb.appspot.com",
+    messagingSenderId: "436372321001",
+    appId: "1:436372321001:web:ebb3b7935f3c119e25b678"
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  const title = payload.notification?.title || "Notificación";
+  const options = {
+    body: payload.notification?.body || "",
+    icon: "./images/192.png"
+  };
+  self.registration.showNotification(title, options);
+});
+
+// Manejar clics en la notificación
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow('/'));
+});
+
 self.addEventListener('install', (event) => {
     console.log('[SW] Instalando Service Worker...');
     event.waitUntil(

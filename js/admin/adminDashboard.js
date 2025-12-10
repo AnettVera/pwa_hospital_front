@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const role = localStorage.getItem("role");
 
     if (role !== "ADMIN") {
@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/modules/auth/login.html";
     }
     loadDashboardData();
+    
+    // Inicializar notificaciones Firebase para admin
+    await initializeNotifications();
 });
 
 
@@ -169,8 +172,97 @@ function updateRoomsStatus(roomsData, bedsData) {
     });
 }
 
+// ========== NOTIFICACIONES FIREBASE ==========
+
+async function initializeNotifications() {
+    try {
+        // Importar dinámicamente el módulo de Firebase para admin
+        const { initializeAdminNotifications, areNotificationsEnabled } = await import('../notification/notification-admin.js');
+
+        // Verificar si ya están habilitadas
+        if (areNotificationsEnabled()) {
+            console.log('✅ Notificaciones ya habilitadas para admin');
+            setupNotificationListener();
+            return;
+        }
+
+        // Inicializar sistema de notificaciones
+        const initialized = await initializeAdminNotifications(handleNewNotification);
+
+        if (initialized) {
+            Toast && Toast.show 
+                ? Toast.show("Notificaciones activadas correctamente", "success")
+                : console.log("Notificaciones activadas");
+        } else {
+            Toast && Toast.show 
+                ? Toast.show("No se pudieron activar las notificaciones", "warning")
+                : console.warn("No se pudieron activar las notificaciones");
+        }
+    } catch (error) {
+        console.error('Error al inicializar notificaciones:', error);
+        Toast && Toast.show && Toast.show("Error al activar notificaciones", "error");
+    }
+}
+
+async function setupNotificationListener() {
+    try {
+        const { setupForegroundNotificationListener } = await import('../notification/notification-admin.js');
+        setupForegroundNotificationListener(handleNewNotification);
+    } catch (error) {
+        console.error('Error al configurar listener:', error);
+    }
+}
+
+function handleNewNotification(payload) {
+    console.log('🔔 Nueva notificación recibida en Dashboard:', payload);
+
+    const title = payload.notification?.title || '';
+    const body = payload.notification?.body || '';
+
+    // Mostrar alerta visual en la UI
+    if (Toast && Toast.show) {
+        Toast.show(`${title}: ${body}`, "info");
+    }
+
+    // Reproducir sonido
+    playNotificationSound();
+
+    // Recargar datos del dashboard para actualizar métricas
+    loadDashboardData();
+}
+
+function playNotificationSound() {
+    try {
+        // Crear un audio simple (beep)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800; // Frecuencia en Hz
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+        console.warn('No se pudo reproducir sonido:', error);
+    }
+}
+
+// ========== LOGOUT ==========
+
 function logout() {
+    // Limpiar token FCM al cerrar sesión
+    import('../notification/notification-admin.js').then(({ clearFCMToken }) => {
+        clearFCMToken();
+    }).catch(() => {});
+    
     localStorage.clear();
     // Redirigir al login
-    window.location.href = "../../modules/auth/login.html";
+    window.location.href = "./../../index.html";
 }

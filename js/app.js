@@ -1,4 +1,5 @@
 if ('serviceWorker' in navigator) {
+    // Ruta absoluta desde la raíz del proyecto
     const swPath = './../sw.js';
     navigator.serviceWorker.register(swPath)
         .then(registration => {

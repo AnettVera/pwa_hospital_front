@@ -1,0 +1,240 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+
+const API_BASE = "http://localhost:8000/api";
+
+let app = null;
+let messaging = null;
+let swReg = null;
+
+/**
+ * Inicializa Firebase y registra el Service Worker
+ */
+async function initializeFirebase() {
+    try {
+        // Inicializar Firebase
+        app = initializeApp(firebaseConfig);
+        console.log('Firebase inicializado');
+
+        // Registrar Service Worker (ruta absoluta desde la raíz)
+        if ('serviceWorker' in navigator) {
+            swReg = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker registrado:', swReg.scope);
+        } else {
+            console.warn('Service Worker no disponible');
+            return false;
+        }
+
+        // Verificar soporte de FCM
+        const supported = await isSupported();
+        
+        if (supported) {
+            messaging = getMessaging(app);
+            console.log('FCM soportado');
+            return true;
+        } else {
+            console.warn('FCM no soportado en este navegador');
+            return false;
+        }
+    } catch (error) {
+        console.error('Error inicializando Firebase:', error);
+        return false;
+    }
+}
+
+/**
+ * Solicita permiso de notificaciones y obtiene el token FCM
+ * @returns {Promise<string|null>} Token FCM o null si falla
+ */
+async function requestNotificationPermissionAndGetToken() {
+    try {
+        // Verificar si Firebase está inicializado
+        if (!messaging) {
+            const initialized = await initializeFirebase();
+            if (!initialized) {
+                throw new Error('Firebase no se pudo inicializar');
+            }
+        }
+
+        // Solicitar permiso
+        const permission = await Notification.requestPermission();
+        console.log('Permiso de notificaciones:', permission);
+
+        if (permission !== 'granted') {
+            console.warn('Permiso de notificaciones denegado');
+            return null;
+        }
+
+        // Obtener token FCM
+        const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: swReg,
+        });
+
+        if (token) {
+            console.log('Token FCM obtenido');
+            return token;
+        } else {
+            console.warn('No se pudo obtener el token FCM');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error obteniendo token:', error);
+        return null;
+    }
+}
+
+/**
+ * Suscribe el token FCM al backend (topic del admin)
+ * @param {string} token - Token FCM del dispositivo
+ * @returns {Promise<boolean>} True si se suscribió correctamente
+ */
+async function subscribeToAdminNotifications(token) {
+    try {
+        const authToken = localStorage.getItem('token');
+        
+        if (!authToken) {
+            console.error('No hay token de autenticación');
+            return false;
+        }
+
+        const response = await fetch(`${API_BASE}/notifications/subscribe-admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ token })
+        });
+
+        if (response.ok) {
+            console.log('Suscrito a notificaciones del administrador');
+            return true;
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Error al suscribirse:', errorData);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error en subscribeToAdminNotifications:', error);
+        return false;
+    }
+}
+
+/**
+ * Configura el listener para notificaciones en primer plano
+ * @param {Function} callback - Función que se ejecuta al recibir notificación
+ */
+function setupForegroundNotificationListener(callback) {
+    if (!messaging) {
+        console.warn('Messaging no inicializado');
+        return;
+    }
+
+    onMessage(messaging, (payload) => {
+        console.log('Notificación recibida en primer plano:', payload);
+
+        const notificationTitle = payload.notification?.title || 'Nueva notificación';
+        const notificationBody = payload.notification?.body || '';
+
+        // Mostrar notificación del navegador
+        if (Notification.permission === 'granted') {
+            new Notification(notificationTitle, {
+                body: notificationBody,
+                icon: '/img/192.png',
+                badge: '/img/192.png',
+                tag: 'admin-notification',
+                requireInteraction: true
+            });
+        }
+
+        // Ejecutar callback personalizado
+        if (callback && typeof callback === 'function') {
+            callback(payload);
+        }
+    });
+
+    console.log('Listener de notificaciones configurado');
+}
+
+/**
+ * Inicializa completamente el sistema de notificaciones para el administrador
+ * @param {Function} onNotificationCallback - Callback al recibir notificación
+ * @returns {Promise<boolean>} True si se inicializó correctamente
+ */
+async function initializeAdminNotifications(onNotificationCallback) {
+    try {
+        console.log('Inicializando sistema de notificaciones...');
+
+        // 1. Inicializar Firebase
+        const initialized = await initializeFirebase();
+        if (!initialized) {
+            console.error('No se pudo inicializar Firebase');
+            return false;
+        }
+
+        // 2. Verificar si ya tiene token guardado
+        let fcmToken = localStorage.getItem('fcm_token_admin');
+
+        if (!fcmToken) {
+            // 3. Solicitar permiso y obtener token
+            fcmToken = await requestNotificationPermissionAndGetToken();
+            
+            if (!fcmToken) {
+                console.error('No se pudo obtener token FCM');
+                return false;
+            }
+
+            // Guardar token en localStorage
+            localStorage.setItem('fcm_token_admin', fcmToken);
+        } else {
+            console.log('Token FCM recuperado de localStorage');
+        }
+
+        // 4. Suscribir al topic del administrador
+        const subscribed = await subscribeToAdminNotifications(fcmToken);
+        
+        if (!subscribed) {
+            console.warn('No se pudo suscribir a notificaciones');
+            // No retornamos false porque el token existe y puede funcionar
+        }
+
+        // 5. Configurar listener de notificaciones
+        setupForegroundNotificationListener(onNotificationCallback);
+
+        console.log('Sistema de notificaciones inicializado completamente');
+        return true;
+
+    } catch (error) {
+        console.error('Error en initializeAdminNotifications:', error);
+        return false;
+    }
+}
+
+/**
+ * Verifica si las notificaciones están habilitadas
+ * @returns {boolean}
+ */
+function areNotificationsEnabled() {
+    return Notification.permission === 'granted' && !!localStorage.getItem('fcm_token_admin');
+}
+
+/**
+ * Limpia el token FCM (útil para logout)
+ */
+function clearFCMToken() {
+    localStorage.removeItem('fcm_token_admin');
+    console.log('Token FCM eliminado');
+}
+
+// Exportar funciones
+export {
+    initializeFirebase,
+    requestNotificationPermissionAndGetToken,
+    subscribeToAdminNotifications,
+    setupForegroundNotificationListener,
+    initializeAdminNotifications,
+    areNotificationsEnabled,
+    clearFCMToken
+};
