@@ -23,10 +23,10 @@ let scanningActive = false;
 //---------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
     const qrSaved = localStorage.getItem("qrEscaneado");
+    const admissionSaved = localStorage.getItem("admissionData");
 
-    if (qrSaved) {
-        // Ya hay QR registrado → pantalla paciente directa
-        mostrarPantallaPaciente(qrSaved);
+    if (qrSaved && admissionSaved) {
+        mostrarPantallaPaciente(JSON.parse(admissionSaved));
     }
 });
 
@@ -35,9 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
 //---------------------------------------------------------
 btnOpenScan.addEventListener("click", () => {
     const qrSaved = localStorage.getItem("qrEscaneado");
+    const admissionSaved = localStorage.getItem("admissionData");
 
-    if (qrSaved) {
-        mostrarPantallaPaciente(qrSaved);
+    if (qrSaved && admissionSaved) {
+        mostrarPantallaPaciente(JSON.parse(admissionSaved));
         return;
     }
 
@@ -91,13 +92,18 @@ function scanQRCode() {
         if (code) {
             console.log("QR Detectado:", code.data);
 
-            // 🔥 Guardar QR en localStorage
-            localStorage.setItem("qrEscaneado", code.data);
-
             stopCamera();
             modalScan.hide();
 
-            mostrarPantallaPaciente(code.data);
+            // Consumir API
+            vincularQRConServidor(code.data).then(result => {
+                if (result) {
+                    localStorage.setItem("qrEscaneado", code.data);
+                    localStorage.setItem("admissionData", JSON.stringify(result.data));
+
+                    mostrarPantallaPaciente(result.data);
+                }
+            });
 
             return;
         }
@@ -126,18 +132,56 @@ modalScanEl.addEventListener("hidden.bs.modal", () => {
 });
 
 //---------------------------------------------------------
-// SIMULAR ESCANEO (solo pruebas)
+// LLAMADA AL ENDPOINT PARA VINCULAR QR
+//---------------------------------------------------------
+async function vincularQRConServidor(qrValue) {
+    try {
+        const response = await fetch("http://localhost:8000/api/admissions/bind", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                qrcode: qrValue,
+                deviceToken: "DEVICE_TOKEN_EJEMPLO"
+            })
+        });
+
+        if (!response.ok) {
+            Toast.show("No se pudo vincular el dispositivo.", "error");
+            return null;
+        }
+
+        const data = await response.json();
+        Toast.show("Dispositivo vinculado correctamente.", "success");
+
+        return data;
+        
+    } catch (error) {
+        console.error(error);
+        Toast.show("Error de conexión con el servidor.", "error");
+        return null;
+    }
+}
+
+//---------------------------------------------------------
+// SIMULAR ESCANEO
 //---------------------------------------------------------
 btnSimulateScan.addEventListener('click', async () => {
     await simulateApiCall();
 
     const qrSimulado = "QR_SIMULADO";
-    localStorage.setItem("qrEscaneado", qrSimulado);
 
-    stopCamera();
-    modalScan.hide();
+    const result = await vincularQRConServidor(qrSimulado);
 
-    mostrarPantallaPaciente(qrSimulado);
+    if (result) {
+        localStorage.setItem("qrEscaneado", qrSimulado);
+        localStorage.setItem("admissionData", JSON.stringify(result.data));
+
+        stopCamera();
+        modalScan.hide();
+        mostrarPantallaPaciente(result.data);
+    }
 });
 
 function simulateApiCall() {
@@ -145,31 +189,31 @@ function simulateApiCall() {
 }
 
 //---------------------------------------------------------
-// FUNCIÓN PARA MOSTRAR LA PANTALLA DEL PACIENTE
+// MOSTRAR PANTALLA PACIENTE
 //---------------------------------------------------------
-function mostrarPantallaPaciente(qrValue) {
-    console.log("Mostrando pantalla con QR:", qrValue);
-
-    // Cargar datos (puedes usar API real luego)
-    loadBedInfo({
-        name: "Cama 500",
-        room: "Habitación 10",
-        area: "Pediatria"
-    });
+function mostrarPantallaPaciente(admissionData) {
+    console.log("Mostrando datos:", admissionData);
+    loadBedInfo(admissionData);
 
     scanScreen.classList.add('d-none-custom');
     patientScreen.classList.remove('d-none-custom');
 }
 
 //---------------------------------------------------------
-// CARGAR DATOS DE LA CAMA
+// CARGAR DATOS REALES DE LA CAMA + PACIENTE
 //---------------------------------------------------------
-function loadBedInfo(bedData) {
-    document.getElementById('bedName').textContent = bedData.name;
-    document.getElementById('bedInfo').textContent = `${bedData.room} - ${bedData.area}`;
+function loadBedInfo(data) {
+    const bed = data.bed;
+    const patient = data.patient;
+
+    document.getElementById('bedName').textContent = bed.bedLabel;
+
+    document.getElementById('bedInfo').textContent =
+        `${bed.room.name} - Isla ${bed.room.island.name}`;
+
     document.getElementById('bedFooter').innerHTML = `
-        <i class="bi bi-link-45deg me-1"></i>
-        Vinculado a la ${bedData.name}
+        <i class="bi bi-person me-1"></i>
+        Paciente: ${patient.name} ${patient.surnames}
     `;
 }
 
@@ -205,14 +249,13 @@ function sendHelpAlert() {
     console.log("🚨 Alerta enviada");
 }
 
-
 //---------------------------------------------------------
-// CERRAR SESIÓN / BORRAR STORAGE
+// LOGOUT
 //---------------------------------------------------------
 document.getElementById("logoutButton").addEventListener("click", () => {
-    localStorage.removeItem("qrEscaneado");  // borrar valor del QR
+    localStorage.removeItem("qrEscaneado");
+    localStorage.removeItem("admissionData");
 
-    // volver a la pantalla de escaneo
     patientScreen.classList.add("d-none-custom");
     scanScreen.classList.remove("d-none-custom");
 
