@@ -1,8 +1,8 @@
 {
   "name": "Ayuda Hospitalaria",
   "short_name": "Hospital",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/pwa_hospital_front/",
+  "scope": "/pwa_hospital_front/",
   "display": "standalone",
   "background_color": "#344966",
   "theme_color": "#E6EBF5",
