@@ -8,7 +8,7 @@
 
 // Configuración por defecto (desarrollo local)
 const DEFAULT_CONFIG = {
-    API_URL: "http://72.44.45.17:8080/api",
+    API_URL: "https://hospitalzapata.duckdns.org:8081/api",
     APP_NAME: "Sistema de Hospital",
     
     // Firebase Config
@@ -58,3 +58,4 @@ const VAPID_KEY = CONFIG.FIREBASE_VAPID_KEY;
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { CONFIG, API_ENDPOINTS, FIREBASE_CONFIG, VAPID_KEY };
 }
+
