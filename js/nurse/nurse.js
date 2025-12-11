@@ -1,13 +1,64 @@
 'use strict';
 
-const API_BASE = "http://localhost:8000/api";
-const API_NURSES = `${API_BASE}/nurses`;
-const API_ADMISSIONS = `${API_BASE}/admissions`;
-const API_HELP = `${API_BASE}/help`;
+// Usa configuración centralizada desde config.js
+const API_BASE = CONFIG.API_URL;
+const API_NURSES = API_ENDPOINTS.NURSES;
+const API_ADMISSIONS = API_ENDPOINTS.ADMISSIONS;
+const API_HELP = API_ENDPOINTS.HELP;
 
 let currentBeds = [];
 let currentAlerts = [];
 let qrStream = null;
+
+
+// ========== POUCHDB (CACHE CAMAS ASIGNADAS) ==========
+
+let nurseDb;
+const hasPouch = typeof window !== 'undefined' && typeof window.PouchDB !== 'undefined';
+
+if (hasPouch) {
+    // DB específica para las camas asignadas al enfermero
+    nurseDb = new window.PouchDB('nurse-assigned-beds-db');
+}
+
+async function saveAssignedBedsCache(beds) {
+    if (!hasPouch) return;
+
+    try {
+        const id = 'assigned-beds';
+        let existing = null;
+
+        try {
+            existing = await nurseDb.get(id);
+        } catch {
+            // si no existe, lo creamos desde cero
+        }
+
+        const doc = {
+            _id: id,
+            ...(existing ? { _rev: existing._rev } : {}),
+            beds: Array.isArray(beds) ? beds : [],
+            lastUpdated: Date.now()
+        };
+
+        await nurseDb.put(doc);
+    } catch (e) {
+        console.error('PouchDB saveAssignedBedsCache error', e);
+    }
+}
+
+async function readAssignedBedsCache() {
+    if (!hasPouch) return [];
+
+    try {
+        const doc = await nurseDb.get('assigned-beds');
+        return doc.beds || [];
+    } catch (e) {
+        // No hay cache aún
+        return [];
+    }
+}
+
 
 // ========== UTILIDADES ==========
 
@@ -57,23 +108,49 @@ async function toggleDutyStatus() {
 }
 
 async function loadAssignedBeds() {
-    try {
-        const res = await fetch(`${API_NURSES}/my-assignments`, {
-            method: 'GET',
-            headers: getHeaders()
-        });
+    if (navigator.onLine) {
+        try {
+            const res = await fetch(`${API_NURSES}/my-assignments`, {
+                method: 'GET',
+                headers: getHeaders()
+            });
 
-        if (res.ok) {
-            const json = await res.json();
-            currentBeds = json.data || [];
-            renderBeds();
-        } else {
-            console.error('Error al cargar camas', res.statusText);
+            if (res.ok) {
+                const json = await res.json();
+                currentBeds = json.data || [];
+                renderBeds();
+
+                await saveAssignedBedsCache(currentBeds);
+                return;
+            } else {
+                console.error('Error al cargar camas', res.statusText);
+            }
+        } catch (e) {
+            console.error('Error al cargar camas (online attempt failed)', e);
+        }
+    }
+
+    try {
+        const cached = await readAssignedBedsCache();
+        currentBeds = cached || [];
+        renderBeds();
+
+        if (!navigator.onLine) {
+            if (!cached || !cached.length) {
+                Toast && Toast.show
+                    ? Toast.show("Sin conexión y sin datos de camas guardados. Vuelve a intentar cuando tengas internet.", "info")
+                    : alert("Sin conexión y sin datos de camas guardados. Vuelve a intentar cuando tengas internet.");
+            } else {
+                Toast && Toast.show
+                    ? Toast.show("Mostrando las camas asignadas guardadas en el dispositivo (modo offline).", "info")
+                    : alert("Mostrando las camas asignadas guardadas en el dispositivo (modo offline).");
+            }
         }
     } catch (e) {
-        console.error('Error al cargar camas', e);
+        console.error('Error al cargar camas desde cache', e);
     }
 }
+
 
 async function loadPendingAlerts() {
     try {
@@ -523,6 +600,17 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     setTimeout(init, 30);
+}
+
+function logout() {
+    // Limpiar token FCM al cerrar sesión
+    import('../notification/notification-admin.js').then(({ clearFCMToken }) => {
+        clearFCMToken();
+    }).catch(() => {});
+    
+    localStorage.clear();
+    // Redirigir al login
+    window.location.href = "./../../index.html";
 }
 
 /*

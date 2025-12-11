@@ -1,9 +1,10 @@
 (function () {
   'use strict';
 
-  const API_BEDS = "http://localhost:8000/api/beds";
+  // Usa configuración centralizada desde config.js
+  const API_BEDS = API_ENDPOINTS.BEDS;
   const API_BEDS_STATUS = `${API_BEDS}/status`;
-  const API_ROOMS = "http://localhost:8000/api/rooms";
+  const API_ROOMS = API_ENDPOINTS.ROOMS;
 
   function getToken() { return localStorage.getItem("token"); }
   function getHeaders() {

@@ -16,7 +16,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 if (!localStorage.getItem("token")) {
     window.location.href = "../../modules/auth/login.html";
 }
-const API_BASE_URL = "http://localhost:8000/api";
+// Usa configuración centralizada desde config.js
+const API_BASE_URL = CONFIG.API_URL;
 
 async function makeAuthenticatedRequest(endpoint, options = {}) {
     const token = localStorage.getItem("token");

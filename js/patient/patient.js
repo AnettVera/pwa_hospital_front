@@ -1,5 +1,99 @@
-// --- CONFIGURACIÓN ---
-const API_URL = "http://localhost:8000/api"; 
+// --- CONFIGURACIÓN (usa config.js global) ---
+const API_URL = CONFIG.API_URL; 
+
+// Instancia de PouchDB
+const helpDb = new PouchDB('hospital-help-alerts');
+const SINGLETON_ID = 'current_pending_alert'; // ID Fijo para asegurar solo 1 petición
+
+function isOnline() {
+    return navigator.onLine;
+}
+
+
+/**
+ * Guarda o Reemplaza la alerta offline.
+ * Al usar un ID fijo, garantizamos que solo haya 1 en cola.
+ */
+async function saveOfflineHelpAlert(qrCode, deviceToken) {
+    const doc = {
+        _id: SINGLETON_ID, // SIEMPRE EL MISMO ID
+        type: 'help-alert',
+        qrCode,
+        deviceToken,
+        pending: true,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        // 1. Intentamos obtener si ya existe una alerta pendiente
+        const existingDoc = await helpDb.get(SINGLETON_ID);
+        
+        // 2. Si existe, actualizamos su _rev para sobrescribirla (Reemplazo)
+        doc._rev = existingDoc._rev;
+        await helpDb.put(doc);
+        console.log("⚠️ Alerta offline ACTUALIZADA (se enviará la más reciente).");
+        
+    } catch (err) {
+        if (err.status === 404) {
+            // 3. Si no existe, la creamos nueva
+            await helpDb.put(doc);
+            console.log("⚠️ Alerta offline GUARDADA.");
+        } else {
+            console.error("Error al guardar en PouchDB:", err);
+            return false;
+        }
+    }
+
+    Toast.show("Sin conexión. Tu alerta se enviará automáticamente cuando vuelva internet.", "warning");
+    return true; 
+}
+
+/**
+ * Sincroniza la alerta pendiente cuando vuelve internet
+ */
+async function syncOfflineHelpAlerts() {
+    if (!isOnline()) return;
+
+    try {
+        // 1. Buscamos si hay algo pendiente
+        const doc = await helpDb.get(SINGLETON_ID);
+
+        console.log(`[SYNC] Enviando alerta pendiente del: ${doc.createdAt}`);
+
+        // 2. Intentamos enviar al backend
+        const response = await fetch(`${API_URL}/help/trigger`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                qrCode: doc.qrCode, 
+                deviceToken: doc.deviceToken 
+            })
+        });
+
+        if (response.ok) {
+            // 3. Si se envió con éxito, BORRAMOS el documento local
+            await helpDb.remove(doc);
+            console.log('[SYNC] Alerta sincronizada y eliminada de local.');
+            Toast.show("Conexión restablecida: Tu alerta pendiente fue enviada.", "success");
+        } else {
+            console.warn('[SYNC] Servidor rechazó la alerta (posiblemente spam o error de datos).');
+            // Opcional: Borrarla si el servidor dice que los datos son inválidos (400)
+            if (response.status === 400) await helpDb.remove(doc);
+        }
+
+    } catch (err) {
+        if (err.status !== 404) {
+            console.error('[SYNC] Error de red o DB:', err);
+        }
+        // Si es 404 significa que no había nada pendiente, ignora.
+    }
+}
+
+// Escuchar evento cuando regresa el internet
+window.addEventListener('online', () => {
+    console.log('🌐 Conexión detectada. Sincronizando...');
+    syncOfflineHelpAlerts();
+});
 
 // Elementos DOM
 const scanScreen = document.getElementById('scanScreen');
@@ -211,29 +305,45 @@ async function sendHelpAlert() {
     const qrCode = localStorage.getItem("qrEscaneado");
     const deviceToken = getDeviceToken();
 
-    try {
-        const response = await fetch(`${API_URL}/help/trigger`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                qrCode: qrCode, 
-                deviceToken: deviceToken 
-            })
-        });
-
-        if (response.ok) {
-            Toast.show("🚨 Alerta enviada. El personal viene en camino.", "success");
-            return true;
-        } else {
-            const err = await response.json();
-            // Puede ser error de spam (429/400)
-            Toast.show(err.message || "No se pudo enviar la alerta", "warning");
-            return false;
-        }
-    } catch (e) {
-        console.error(e);
-        Toast.show("Error de conexión", "error");
+    if (!qrCode) {
+        Toast.show("No hay cama vinculada. Escanee el QR primero.", "warning");
         return false;
+    }
+
+    // A. Si tenemos internet, intentamos enviar directo
+    if (isOnline()) {
+        try {
+            const response = await fetch(`${API_URL}/help/trigger`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    qrCode: qrCode, 
+                    deviceToken: deviceToken 
+                })
+            });
+
+            if (response.ok) {
+                Toast.show("Alerta enviada. El personal viene en camino.", "success");
+                // Si teníamos algo pendiente en la DB y acabamos de enviar uno nuevo exitoso,
+                // podríamos borrar la pendiente para no duplicar, aunque el backend filtra por spam.
+                return true; 
+            } else {
+                const err = await response.json().catch(() => ({}));
+                Toast.show(err.message || "No se pudo enviar la alerta", "warning");
+                return false;
+            }
+        } catch (e) {
+            console.error("Fallo de red al enviar (Catch). Guardando offline...", e);
+            // B. Si falla el fetch (error de red), guardamos offline
+            const saved = await saveOfflineHelpAlert(qrCode, deviceToken);
+            return saved;
+        }
+    } 
+    
+    // C. Si el navegador dice explícitamente que estamos offline
+    else {
+        const saved = await saveOfflineHelpAlert(qrCode, deviceToken);
+        return saved;
     }
 }
 
@@ -268,4 +378,3 @@ logoutButton.addEventListener("click", () => {
         // Nota: El deviceToken NO se borra, es la identidad del celular.
     }
 });
-

@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
 
-    const API_URL = "http://localhost:8000/api/auth/login"
+    const API_URL = `${CONFIG.API_URL}/auth/login`
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const password = passwordInput.value.trim();
 
         if (!username || !password) {
-            Toast.show("Porfavor complete todos los campos", 'error');
+            Toast.show("Por favor complete todos los campos.", "error");
             return;
         }
 
@@ -38,22 +38,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     const role = decodedToken.role;
                     localStorage.setItem("role", role);
 
-                    Toast.show("Inicio de sesión exitoso ¡Bienvenido!", 'success');
+                    Toast.show("Inicio de sesión exitoso", "success");
+
+
                     if(role === "ADMIN") {
-                        window.location.href = "/modules/admin/dashboard.html";
+                        window.location.href = "./../../modules/admin/dashboard.html";
                     } else if(role === "NURSE") {
-                        window.location.href = "/modules/nurse/nurse-content.html";
+                        window.location.href = "./../../modules/nurse/nurse-content.html";
                     } else {
-                        window.location.href = "/index.html";
+                        window.location.href = "./../../index.html";
                     }
                 } else {
-                    Toast.show("Credenciales inválidas", 'error');
+                    Toast.show("Credenciales incorrectas", "error");
+
                 }
             } else {
-                Toast.show("Credenciales inválidas", 'error');
+                Toast.show("Credenciales incorrectas", "error");
+
             }
         } catch (error) {
-            Toast.show("Credenciales inválidas", 'error');
+            Toast.show("Ah ocurrido un error, por favor intente mas tarde", "error");
             console.error("Error de conexión con el servidor:", error);
         }
         

@@ -1,7 +1,8 @@
 (function () {
 
-  const API_ROOMS = "http://localhost:8000/api/rooms";
-  const API_ISLANDS = "http://localhost:8000/api/islands";
+  // Usa configuración centralizada desde config.js
+  const API_ROOMS = API_ENDPOINTS.ROOMS;
+  const API_ISLANDS = API_ENDPOINTS.ISLANDS;
 
   function getToken() {
       return localStorage.getItem("token");

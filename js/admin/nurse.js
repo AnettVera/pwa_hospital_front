@@ -1,7 +1,8 @@
 (function () {
   "use strict";
 
-  const API_URL = "http://localhost:8000/api/nurses";
+  // Usa configuración centralizada desde config.js
+  const API_URL = API_ENDPOINTS.NURSES;
   const tableBody = document.getElementById("nurse-table-body");
   const saveBtn = document.getElementById("save-nurse-btn");
   const inputId = document.getElementById("nurse-id");

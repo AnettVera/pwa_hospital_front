@@ -1,8 +1,21 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
+// Usa configuración centralizada desde config.js (cargado antes en HTML)
+const firebaseConfigLocal = typeof FIREBASE_CONFIG !== 'undefined' ? FIREBASE_CONFIG : {
+    apiKey: "AIzaSyCXN0yk02hE5xHtHFQr3YOayME232YDHEE",
+    authDomain: "storageintdb.firebaseapp.com",
+    projectId: "storageintdb",
+    storageBucket: "storageintdb.appspot.com",
+    messagingSenderId: "436372321001",
+    appId: "1:436372321001:web:ebb3b7935f3c119e25b678"
+};
 
-const API_BASE = "http://localhost:8000/api";
+// Clave pública VAPID (desde config.js o valor por defecto)
+const VAPID_KEY_ADMIN = typeof VAPID_KEY !== 'undefined' ? VAPID_KEY : "BNWuae2n3wIYLWUenHZ3X5c72buK4pmCcRM0xQXOXtMJxL0mqRtRSxUj2P0xXby_NmhC1pale3awnPIg4VeN4Cs";
+
+// API Base desde config.js
+const API_BASE = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "http://localhost:8000/api";
 
 let app = null;
 let messaging = null;
@@ -14,7 +27,7 @@ let swReg = null;
 async function initializeFirebase() {
     try {
         // Inicializar Firebase
-        app = initializeApp(firebaseConfig);
+        app = initializeApp(firebaseConfigLocal);
         console.log('Firebase inicializado');
 
         // Registrar Service Worker (ruta absoluta desde la raíz)
@@ -68,7 +81,7 @@ async function requestNotificationPermissionAndGetToken() {
 
         // Obtener token FCM
         const token = await getToken(messaging, {
-            vapidKey: VAPID_KEY,
+            vapidKey: VAPID_KEY_ADMIN,
             serviceWorkerRegistration: swReg,
         });
 

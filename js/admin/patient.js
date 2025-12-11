@@ -1,9 +1,10 @@
 'use strict';
 
-const API_URL = "http://localhost:8000/api/patients";
-const API_ADMISSIONS = "http://localhost:8000/api/admissions";
-const API_BEDS = "http://localhost:8000/api/beds";
-const API_NURSES = "http://localhost:8000/api/nurses";
+// Usa configuración centralizada desde config.js
+const API_URL = API_ENDPOINTS.PATIENTS;
+const API_ADMISSIONS = API_ENDPOINTS.ADMISSIONS;
+const API_BEDS = API_ENDPOINTS.BEDS;
+const API_NURSES = API_ENDPOINTS.NURSES;
 
 const tableBody = document.getElementById('patient-table-body');
 const saveBtn = document.getElementById('save-patient-btn');

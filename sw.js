@@ -36,6 +36,9 @@ const APP_SHELL = [
     './modules/auth/login.html',
     './modules/patient/patient.html',
     './modules/nurse/nurse-content.html',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap',
+    'https://fonts.googleapis.com',
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css'
 ];
 
 
