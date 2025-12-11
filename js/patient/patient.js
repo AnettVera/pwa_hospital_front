@@ -317,7 +317,7 @@ async function sendHelpAlert() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
-                    qrCode: qrCode, 
+                    qrcode: qrCode, 
                     deviceToken: deviceToken 
                 })
             });
@@ -378,4 +378,5 @@ logoutButton.addEventListener("click", () => {
         // Nota: El deviceToken NO se borra, es la identidad del celular.
     }
 });
+
 
