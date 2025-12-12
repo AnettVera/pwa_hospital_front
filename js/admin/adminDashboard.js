@@ -177,40 +177,29 @@ function updateRoomsStatus(roomsData, bedsData) {
 
 async function initializeNotifications() {
     try {
+        console.log('🔔 Iniciando sistema de notificaciones...');
+        
         // Importar dinámicamente el módulo de Firebase para admin
-        const { initializeAdminNotifications, areNotificationsEnabled } = await import('../notification/notification-admin.js');
+        const { initializeAdminNotifications } = await import('../notification/notification-admin.js');
 
-        // Verificar si ya están habilitadas
-        if (areNotificationsEnabled()) {
-            console.log('✅ Notificaciones ya habilitadas para admin');
-            setupNotificationListener();
-            return;
-        }
-
-        // Inicializar sistema de notificaciones
+        // SIEMPRE inicializar, incluso si ya hay token guardado
+        // Esto asegura que Firebase y messaging estén listos
         const initialized = await initializeAdminNotifications(handleNewNotification);
 
         if (initialized) {
+            console.log('✅ Sistema de notificaciones inicializado correctamente');
             Toast && Toast.show
                 ? Toast.show("Notificaciones activadas correctamente", "success")
                 : console.log("Notificaciones activadas");
         } else {
+            console.warn('⚠️ No se pudieron inicializar las notificaciones');
             Toast && Toast.show
                 ? Toast.show("No se pudieron activar las notificaciones", "warning")
                 : console.warn("No se pudieron activar las notificaciones");
         }
     } catch (error) {
-        console.error('Error al inicializar notificaciones:', error);
+        console.error('❌ Error al inicializar notificaciones:', error);
         Toast && Toast.show && Toast.show("Error al activar notificaciones", "error");
-    }
-}
-
-async function setupNotificationListener() {
-    try {
-        const { setupForegroundNotificationListener } = await import('../notification/notification-admin.js');
-        setupForegroundNotificationListener(handleNewNotification);
-    } catch (error) {
-        console.error('Error al configurar listener:', error);
     }
 }
 
