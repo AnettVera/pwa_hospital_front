@@ -954,11 +954,6 @@ async function handleAssignNurses() {
 function init() {
   loadPatients();
 
-  // Toast de bienvenida solo si existe
-  if (window.Toast && Toast.show) {
-    Toast.show("Sistema cargado correctamente 🎉", "success");
-  }
-
   if (navigator.onLine) {
     processOutbox().then(() => loadPatients());
   }
@@ -1328,4 +1323,5 @@ if (document.readyState === 'loading') {
 
 })())
 */  
+
 
