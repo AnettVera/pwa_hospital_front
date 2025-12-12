@@ -190,7 +190,7 @@ async function getPatientInfoByQR(qrCode) {
 
 async function markAlertAsAttended(alertId) {
     try {
-        const res = await fetch(`${API_HELP}/attend/${alertId}`, {
+        const res = await fetch(`${API_HELP}/resolve/${alertId}`, {
             method: 'PATCH',
             headers: getHeaders()
         });
@@ -605,4 +605,5 @@ function logout() {
 }
 
 // Hacer la función logout accesible globalmente
+
 window.logout = logout;
