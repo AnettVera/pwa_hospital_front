@@ -1,5 +1,5 @@
 const STATIC_CACHE = 'static-v5';
-const DYNAMIC_CACHE = 'dynamic-v2';
+const DYNAMIC_CACHE = 'dynamic-v5';
 
 const APP_SHELL = [
     './',
@@ -147,4 +147,5 @@ self.addEventListener('fetch', (event) => {
     );
 
 });
+
 
