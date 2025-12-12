@@ -444,7 +444,7 @@ function handleToggleAlerts(e) {
     
     toggleDutyStatus().then(nurse => {
         if (nurse) {
-            const status = nurse.isOnDuty || nurse.onDuty ? "activo" : "inactivo";
+            const status = nurse.isOnDuty || nurse.onDuty ? "inactivo" : "activo";
             Toast && Toast.show 
                 ? Toast.show(`Estado cambiado a: ${status}`, "success")
                 : console.log(`Estado: ${status}`);
