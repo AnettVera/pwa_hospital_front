@@ -256,3 +256,6 @@ function logout() {
     // Redirigir al login
     window.location.href = "./../../index.html";
 }
+
+// Exponer logout globalmente para que funcione con onclick en el HTML
+window.logout = logout;
