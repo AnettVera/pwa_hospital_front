@@ -177,31 +177,28 @@ async function subscribeToNurseNotifications(token) {
  */
 function setupForegroundNotificationListener(callback) {
     if (!messaging) {
-        console.warn('Messaging no inicializado');
+        console.warn('Messaging no inicializado, reintentando en 500ms...');
+        setTimeout(() => setupForegroundNotificationListener(callback), 500);
         return;
     }
 
     onMessage(messaging, (payload) => {
         console.log('Notificación recibida en primer plano:', payload);
 
-        const notificationTitle = payload.notification?.title || 'Nueva notificación';
-        const notificationBody = payload.notification?.body || '';
+        const title = payload.notification?.title || 'Nueva notificación';
+        const body = payload.notification?.body || '';
 
-        // Mostrar notificación del navegador
         if (Notification.permission === 'granted') {
-            new Notification(notificationTitle, {
-                body: notificationBody,
-                icon: '/img/192.png', // Ajusta la ruta de tu logo
+            new Notification(title, {
+                body,
+                icon: '/img/192.png',
                 badge: '/img/192.png',
-                tag: 'nurse-notification',
+                tag: 'noti',
                 requireInteraction: true
             });
         }
 
-        // Ejecutar callback personalizado
-        if (callback && typeof callback === 'function') {
-            callback(payload);
-        }
+        if (callback) callback(payload);
     });
 
     console.log('Listener de notificaciones configurado');
