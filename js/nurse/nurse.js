@@ -469,7 +469,7 @@ function handleToggleAlerts(e) {
 async function initializeNotifications() {
     try {
         // Importar dinámicamente el módulo de Firebase
-        const { initializeNurseNotifications, areNotificationsEnabled } = await import('../notification/firebase-config.js');
+    const { initializeNurseNotifications, areNotificationsEnabled } = await import('../notification/firebase-config.js');
 
         // Verificar si ya están habilitadas
         if (areNotificationsEnabled()) {
@@ -604,7 +604,7 @@ if (document.readyState === 'loading') {
 
 function logout() {
     // Limpiar token FCM al cerrar sesión
-    import('../notification/notification-admin.js').then(({ clearFCMToken }) => {
+    import('../notification/firebase-config.js').then(({ clearFCMToken }) => {
         clearFCMToken();
     }).catch(() => {});
     
