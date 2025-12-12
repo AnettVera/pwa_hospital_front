@@ -287,7 +287,13 @@ body {
     background: #ffe5e5;
     color: #c40000;
 }
-
+.status-available2 {
+    background-color: #28a745; /* verde */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
 .status-available {
     background: var(--secondary);
     color: var(--foreground);
