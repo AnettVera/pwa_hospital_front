@@ -15,11 +15,32 @@ const firebaseConfig = typeof FIREBASE_CONFIG !== 'undefined' ? FIREBASE_CONFIG 
 const VAPID_KEY_LOCAL = typeof VAPID_KEY !== 'undefined' ? VAPID_KEY : "BNWuae2n3wIYLWUenHZ3X5c72buK4pmCcRM0xQXOXtMJxL0mqRtRSxUj2P0xXby_NmhC1pale3awnPIg4VeN4Cs";
 
 // API Base desde config.js
-const API_BASE = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "http://localhost:8000/api";
+const API_BASE = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "https://hospitalzapata.duckdns.org:8081/api";
 
 let app = null;
 let messaging = null;
 let swReg = null;
+
+/**
+ * Detecta la ruta correcta del Service Worker según el entorno
+ */
+function getServiceWorkerPath() {
+    // Si estás en GitHub Pages, necesitas incluir el nombre del repositorio
+    const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
+    
+    // Detectar GitHub Pages
+    if (hostname.includes('github.io')) {
+        // Extraer el nombre del repo desde la URL
+        // Ejemplo: https://usuario.github.io/repo-name/ -> /repo-name/
+        const repoMatch = pathname.match(/^\/([^\/]+)/);
+        const repoName = repoMatch ? repoMatch[1] : '';
+        return `/${repoName}/sw.js`;
+    }
+    
+    // Para otros entornos (localhost, dominio propio)
+    return '/sw.js';
+}
 
 /**
  * Inicializa Firebase y registra el Service Worker
@@ -30,12 +51,29 @@ async function initializeFirebase() {
         app = initializeApp(firebaseConfig);
         console.log('Firebase inicializado');
 
-        // Registrar Service Worker (ruta absoluta desde la raíz)
+        // Registrar Service Worker con ruta dinámica
         if ('serviceWorker' in navigator) {
-            swReg = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registrado:', swReg.scope);
+            const swPath = getServiceWorkerPath();
+            console.log('Intentando registrar Service Worker en:', swPath);
+            
+            try {
+                swReg = await navigator.serviceWorker.register(swPath);
+                console.log('Service Worker registrado:', swReg.scope);
+            } catch (swError) {
+                console.error('Error al registrar Service Worker:', swError);
+                console.log('Intentando con ruta alternativa: ./sw.js');
+                
+                // Intento alternativo con ruta relativa
+                try {
+                    swReg = await navigator.serviceWorker.register('./sw.js');
+                    console.log('Service Worker registrado (ruta relativa):', swReg.scope);
+                } catch (altError) {
+                    console.error('Service Worker no se pudo registrar en ninguna ruta');
+                    return false;
+                }
+            }
         } else {
-            console.warn('Service Worker no disponible');
+            console.warn('Service Worker no disponible en este navegador');
             return false;
         }
 

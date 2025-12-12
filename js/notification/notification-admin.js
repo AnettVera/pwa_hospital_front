@@ -15,11 +15,32 @@ const firebaseConfigLocal = typeof FIREBASE_CONFIG !== 'undefined' ? FIREBASE_CO
 const VAPID_KEY_ADMIN = typeof VAPID_KEY !== 'undefined' ? VAPID_KEY : "BNWuae2n3wIYLWUenHZ3X5c72buK4pmCcRM0xQXOXtMJxL0mqRtRSxUj2P0xXby_NmhC1pale3awnPIg4VeN4Cs";
 
 // API Base desde config.js
-const API_BASE = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "http://localhost:8000/api";
+const API_BASE = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "https://hospitalzapata.duckdns.org:8081/api";
 
 let app = null;
 let messaging = null;
 let swReg = null;
+
+/**
+ * Detecta la ruta correcta del Service Worker según el entorno
+ */
+function getServiceWorkerPath() {
+    // Si estás en GitHub Pages, necesitas incluir el nombre del repositorio
+    const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
+    
+    // Detectar GitHub Pages
+    if (hostname.includes('github.io')) {
+        // Extraer el nombre del repo desde la URL
+        // Ejemplo: https://usuario.github.io/repo-name/ -> /repo-name/
+        const repoMatch = pathname.match(/^\/([^\/]+)/);
+        const repoName = repoMatch ? repoMatch[1] : '';
+        return `/${repoName}/sw.js`;
+    }
+    
+    // Para otros entornos (localhost, dominio propio)
+    return '/sw.js';
+}
 
 /**
  * Inicializa Firebase y registra el Service Worker
@@ -30,12 +51,29 @@ async function initializeFirebase() {
         app = initializeApp(firebaseConfigLocal);
         console.log('Firebase inicializado');
 
-        // Registrar Service Worker (ruta absoluta desde la raíz)
+        // Registrar Service Worker con ruta dinámica
         if ('serviceWorker' in navigator) {
-            swReg = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registrado:', swReg.scope);
+            const swPath = getServiceWorkerPath();
+            console.log('Intentando registrar Service Worker en:', swPath);
+            
+            try {
+                swReg = await navigator.serviceWorker.register(swPath);
+                console.log('Service Worker registrado:', swReg.scope);
+            } catch (swError) {
+                console.error('Error al registrar Service Worker:', swError);
+                console.log('Intentando con ruta alternativa: ./sw.js');
+                
+                // Intento alternativo con ruta relativa
+                try {
+                    swReg = await navigator.serviceWorker.register('./sw.js');
+                    console.log('Service Worker registrado (ruta relativa):', swReg.scope);
+                } catch (altError) {
+                    console.error('Service Worker no se pudo registrar en ninguna ruta');
+                    return false;
+                }
+            }
         } else {
-            console.warn('Service Worker no disponible');
+            console.warn('Service Worker no disponible en este navegador');
             return false;
         }
 
@@ -147,7 +185,7 @@ function setupForegroundNotificationListener(callback) {
 
     onMessage(messaging, (payload) => {
         console.log('Notificación recibida en primer plano:', payload);
-
+        
         const notificationTitle = payload.notification?.title || 'Nueva notificación';
         const notificationBody = payload.notification?.body || '';
 
@@ -189,7 +227,7 @@ async function initializeAdminNotifications(onNotificationCallback) {
 
         // 2. Verificar si ya tiene token guardado
         let fcmToken = localStorage.getItem('fcm_token_admin');
-
+        
         if (!fcmToken) {
             // 3. Solicitar permiso y obtener token
             fcmToken = await requestNotificationPermissionAndGetToken();
@@ -218,7 +256,6 @@ async function initializeAdminNotifications(onNotificationCallback) {
 
         console.log('Sistema de notificaciones inicializado completamente');
         return true;
-
     } catch (error) {
         console.error('Error en initializeAdminNotifications:', error);
         return false;
