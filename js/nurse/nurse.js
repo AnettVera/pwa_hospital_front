@@ -387,8 +387,8 @@ async function startQRScanner() {
                                     <i class="bi bi-check-circle-fill me-2"></i>Información del Paciente
                                 </h6>
                                 <p class="mb-1"><strong>Nombre:</strong> ${escapeHtml(patientInfo.patientName)}</p>
-                                <p class="mb-1"><strong>Cama:</strong> ${escapeHtml(patientInfo.bedLabel)}</p>
-                                <p class="mb-1"><strong>Habitación:</strong> ${escapeHtml(patientInfo.roomName)}</p>
+                                <p class="mb-1"><strong>Cama:</strong> ${escapeHtml(patientInfo.bed)}</p>
+                                <p class="mb-1"><strong>Habitación:</strong> ${escapeHtml(patientInfo.room)}</p>
                                 ${patientInfo.notes ? `<p class="mb-0"><strong>Notas:</strong> ${escapeHtml(patientInfo.notes)}</p>` : ''}
                             </div>
                         `;
