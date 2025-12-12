@@ -47,12 +47,14 @@ function getServiceWorkerPath() {
  */
 async function initializeFirebase() {
     try {
-        // Inicializar Firebase
-        app = initializeApp(firebaseConfigLocal);
-        console.log('Firebase inicializado');
+        // Inicializar Firebase solo si no está ya inicializado
+        if (!app) {
+            app = initializeApp(firebaseConfigLocal);
+            console.log('Firebase inicializado');
+        }
 
         // Registrar Service Worker con ruta dinámica
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && !swReg) {
             const swPath = getServiceWorkerPath();
             console.log('Intentando registrar Service Worker en:', swPath);
             
@@ -72,6 +74,8 @@ async function initializeFirebase() {
                     return false;
                 }
             }
+        } else if (swReg) {
+            console.log('Service Worker ya estaba registrado');
         } else {
             console.warn('Service Worker no disponible en este navegador');
             return false;
@@ -81,8 +85,11 @@ async function initializeFirebase() {
         const supported = await isSupported();
         
         if (supported) {
-            messaging = getMessaging(app);
-            console.log('FCM soportado');
+            // Solo inicializar messaging si no existe
+            if (!messaging) {
+                messaging = getMessaging(app);
+                console.log('FCM inicializado');
+            }
             return true;
         } else {
             console.warn('FCM no soportado en este navegador');
@@ -179,8 +186,8 @@ async function subscribeToAdminNotifications(token) {
  */
 function setupForegroundNotificationListener(callback) {
     if (!messaging) {
-        console.warn('Messaging no inicializado');
-        return;
+        console.error('ERROR: Messaging no inicializado. No se puede configurar el listener.');
+        return false;
     }
 
     onMessage(messaging, (payload) => {
@@ -207,6 +214,7 @@ function setupForegroundNotificationListener(callback) {
     });
 
     console.log('Listener de notificaciones configurado');
+    return true;
 }
 
 /**
@@ -241,6 +249,16 @@ async function initializeAdminNotifications(onNotificationCallback) {
             localStorage.setItem('fcm_token_admin', fcmToken);
         } else {
             console.log('Token FCM recuperado de localStorage');
+            
+            // IMPORTANTE: Verificar que messaging esté inicializado incluso si hay token
+            if (!messaging) {
+                console.log('Messaging no estaba inicializado, re-inicializando...');
+                const reinitialized = await requestNotificationPermissionAndGetToken();
+                if (!reinitialized) {
+                    console.error('No se pudo re-inicializar messaging');
+                    return false;
+                }
+            }
         }
 
         // 4. Suscribir al topic del administrador
@@ -252,7 +270,12 @@ async function initializeAdminNotifications(onNotificationCallback) {
         }
 
         // 5. Configurar listener de notificaciones
-        setupForegroundNotificationListener(onNotificationCallback);
+        const listenerConfigured = setupForegroundNotificationListener(onNotificationCallback);
+        
+        if (!listenerConfigured) {
+            console.error('No se pudo configurar el listener de notificaciones');
+            return false;
+        }
 
         console.log('Sistema de notificaciones inicializado completamente');
         return true;
