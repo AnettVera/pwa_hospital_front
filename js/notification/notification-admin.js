@@ -85,15 +85,22 @@ async function initializeFirebase() {
         const supported = await isSupported();
         
         if (supported) {
-            // Solo inicializar messaging si no existe
+            // Inicializar messaging
             if (!messaging) {
                 messaging = getMessaging(app);
                 console.log('FCM inicializado');
             }
+            if (!swReg) {
+                console.warn("Service Worker aún no registrado, registrando forzadamente...");
+                try {
+                    swReg = await navigator.serviceWorker.register('/sw.js');
+                    console.log("SW registrado correctamente (forzado).");
+                } catch (e) {
+                    console.error("No se pudo registrar el Service Worker:", e);
+                }
+            }
+
             return true;
-        } else {
-            console.warn('FCM no soportado en este navegador');
-            return false;
         }
     } catch (error) {
         console.error('Error inicializando Firebase:', error);

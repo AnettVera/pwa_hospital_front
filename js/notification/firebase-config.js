@@ -102,10 +102,8 @@ async function requestNotificationPermissionAndGetToken() {
     try {
         // Verificar si Firebase está inicializado
         if (!messaging) {
-            const initialized = await initializeFirebase();
-            if (!initialized) {
-                throw new Error('Firebase no se pudo inicializar');
-            }
+            console.error('Messaging no está inicializado después de initializeFirebase');
+            return null;
         }
 
         // Solicitar permiso
