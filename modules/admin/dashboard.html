@@ -110,19 +110,7 @@
     <script src="./../../js/bootstrap.min.js"></script>
     <script src="./../../js/app.js"></script>
     <script src="./../../alerts/toastConfig.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const currentPage = window.location.pathname.split("/").pop();
 
-            document.querySelectorAll(".sidebar-item").forEach(link => {
-                const linkPage = link.getAttribute("href").split("/").pop();
-
-                if (currentPage === linkPage) {
-                    link.classList.add("active");
-                }
-            });
-        });
-    </script>
 
 </body>
 
