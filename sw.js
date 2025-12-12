@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'static-v3';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const STATIC_CACHE = 'static-v4';
+const DYNAMIC_CACHE = 'dynamic-v2';
 
 const APP_SHELL = [
     './',
@@ -145,4 +145,5 @@ self.addEventListener('fetch', (event) => {
                 });
         })
     );
+
 });
