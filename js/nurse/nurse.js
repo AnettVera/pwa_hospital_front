@@ -17,7 +17,6 @@ let nurseDb;
 const hasPouch = typeof window !== 'undefined' && typeof window.PouchDB !== 'undefined';
 
 if (hasPouch) {
-    // DB específica para las camas asignadas al enfermero
     nurseDb = new window.PouchDB('nurse-assigned-beds-db');
 }
 
@@ -54,7 +53,6 @@ async function readAssignedBedsCache() {
         const doc = await nurseDb.get('assigned-beds');
         return doc.beds || [];
     } catch (e) {
-        // No hay cache aún
         return [];
     }
 }
@@ -259,7 +257,6 @@ function renderAlerts() {
         alertsList.appendChild(div);
     });
 
-    // Event listeners para botones de atender
     alertsList.querySelectorAll("button[data-alert-id]").forEach(btn => {
         btn.addEventListener("click", async (e) => {
             const alertId = Number(e.currentTarget.dataset.alertId);
@@ -268,7 +265,7 @@ function renderAlerts() {
             if (success) {
                 Toast && Toast.show ? Toast.show("Alerta atendida", "success") : alert("Alerta atendida");
                 await loadPendingAlerts();
-                await loadAssignedBeds(); // Recargar camas para actualizar estados
+                await loadAssignedBeds();
             } else {
                 Toast && Toast.show ? Toast.show("Error al atender alerta", "error") : alert("Error al atender alerta");
             }
@@ -353,7 +350,6 @@ async function startQRScanner() {
     if (!resultBox) return;
     resultBox.textContent = "";
 
-    // Verificar compatibilidad del navegador
     if (!("BarcodeDetector" in window)) {
         Toast && Toast.show 
             ? Toast.show("Tu dispositivo no soporta escaneo QR nativo", "error")
@@ -380,14 +376,11 @@ async function startQRScanner() {
                 if (barcodes.length > 0) {
                     const qrValue = barcodes[0].rawValue;
                     
-                    // Mostrar resultado
                     resultBox.textContent = "Escaneando...";
                     
-                    // Obtener info del paciente
                     try {
                         const patientInfo = await getPatientInfoByQR(qrValue);
                         
-                        // Mostrar información
                         resultBox.innerHTML = `
                             <div class="alert alert-success text-start mt-3">
                                 <h6 class="fw-bold mb-2">
@@ -444,20 +437,17 @@ function handleToggleAlerts(e) {
     
     toggleDutyStatus().then(nurse => {
         if (nurse) {
-            const status = nurse.isOnDuty || nurse.onDuty ? "inactivo" : "activo";
+            const status = nurse.isOnDuty || nurse.onDuty ? "activo" : "inactivo";
             Toast && Toast.show 
                 ? Toast.show(`Estado cambiado a: ${status}`, "success")
                 : console.log(`Estado: ${status}`);
             
-            // Si se desactiva, dejamos de escuchar alertas
             if (!isChecked) {
-                // Aquí se podría implementar lógica adicional
                 console.log('Notificaciones desactivadas');
             } else {
                 console.log('Notificaciones activadas');
             }
         } else {
-            // Si falla, revertir el toggle
             e.target.checked = !isChecked;
             Toast && Toast.show 
                 ? Toast.show("Error al cambiar estado", "error")
@@ -466,42 +456,43 @@ function handleToggleAlerts(e) {
     });
 }
 
+// ========== NOTIFICACIONES ==========
+
 async function initializeNotifications() {
     try {
+        console.log('🚀 Inicializando notificaciones...');
+        
         // Importar dinámicamente el módulo de Firebase
-    const { initializeNurseNotifications, areNotificationsEnabled } = await import('../notification/firebase-config.js');
+        const { initializeNurseNotifications, areNotificationsEnabled } = await import('../notification/firebase-config.js');
 
         // Verificar si ya están habilitadas
         if (areNotificationsEnabled()) {
-            console.log('✅ Notificaciones ya habilitadas');
-            setupNotificationListener();
+            console.log('✅ Notificaciones ya habilitadas previamente');
+            
+            // Re-inicializar para configurar el listener con el nuevo callback
+            const reInitialized = await initializeNurseNotifications(handleNewNotification);
+            
+            if (reInitialized) {
+                console.log('✅ Sistema de notificaciones re-inicializado');
+            }
             return;
         }
 
-        // Inicializar sistema de notificaciones
+        // Inicializar sistema de notificaciones (esto YA configura el listener internamente)
         const initialized = await initializeNurseNotifications(handleNewNotification);
 
         if (initialized) {
             Toast && Toast.show 
                 ? Toast.show("Notificaciones activadas correctamente", "success")
-                : console.log("Notificaciones activadas");
+                : console.log("✅ Notificaciones activadas");
         } else {
             Toast && Toast.show 
                 ? Toast.show("No se pudieron activar las notificaciones", "warning")
-                : console.warn("No se pudieron activar las notificaciones");
+                : console.warn("⚠️ No se pudieron activar las notificaciones");
         }
     } catch (error) {
-        console.error('Error al inicializar notificaciones:', error);
+        console.error('❌ Error al inicializar notificaciones:', error);
         Toast && Toast.show && Toast.show("Error al activar notificaciones", "error");
-    }
-}
-
-async function setupNotificationListener() {
-    try {
-        const { setupForegroundNotificationListener } = await import('../notification/firebase-config.js');
-        setupForegroundNotificationListener(handleNewNotification);
-    } catch (error) {
-        console.error('Error al configurar listener:', error);
     }
 }
 
@@ -516,7 +507,7 @@ function handleNewNotification(payload) {
         Toast.show(`${title}: ${body}`, "info");
     }
 
-    // Reproducir sonido (opcional)
+    // Reproducir sonido
     playNotificationSound();
 
     // Recargar alertas y camas
@@ -532,7 +523,6 @@ function handleNewNotification(payload) {
 
 function playNotificationSound() {
     try {
-        // Crear un audio simple (beep)
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -540,7 +530,7 @@ function playNotificationSound() {
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.value = 800; // Frecuencia en Hz
+        oscillator.frequency.value = 800;
         oscillator.type = 'sine';
 
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -556,6 +546,8 @@ function playNotificationSound() {
 // ========== INIT ==========
 
 async function init() {
+    console.log('🚀 Inicializando panel de enfermero...');
+    
     // Inicializar elementos del DOM
     qrModalEl = qs("qrModal");
     if (qrModalEl) {
@@ -570,7 +562,7 @@ async function init() {
     loadAssignedBeds();
     loadPendingAlerts();
 
-    // Inicializar notificaciones Firebase
+    // ✅ SOLO llamar a initializeNotifications (que ya configura el listener internamente)
     await initializeNotifications();
 
     // Event listeners
@@ -592,7 +584,7 @@ async function init() {
         }
     }, 30000);
 
-    console.log('Panel de enfermero inicializado');
+    console.log('✅ Panel de enfermero inicializado');
 }
 
 // Inicializar cuando el DOM esté listo
@@ -609,174 +601,5 @@ function logout() {
     }).catch(() => {});
     
     localStorage.clear();
-    // Redirigir al login
     window.location.href = "./../../index.html";
 }
-
-/*
-(function () {
-
-    const beds = [
-        { id: 201, name: "Cama 201", room: "Hab. 2", state: "alert" },
-        { id: 101, name: "Cama 101", room: "Hab. 1", state: "occupied" }
-    ];
-
-    function qs(id) { return document.getElementById(id); }
-
-    function escapeHtml(str) {
-        return String(str).replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;');
-    }
-
-    // QR Scanner
-    let qrStream = null;
-    let qrModalEl = document.getElementById("qrModal");
-    let qrModal = new bootstrap.Modal(qrModalEl);
-    let video = document.getElementById("qrVideo");
-    let resultBox = document.getElementById("qrResult");
-
-    document.getElementById("btn-scan-qr")?.addEventListener("click", startQRScanner);
-
-    async function startQRScanner() {
-        resultBox.textContent = "";
-
-        // Verificar compatibilidad del navegador
-        if (!("BarcodeDetector" in window)) {
-            alert("Tu dispositivo no soporta escaneo QR nativo.");
-            return;
-        }
-
-        qrModal.show();
-
-        try {
-            qrStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
-
-            video.srcObject = qrStream;
-
-            const detector = new BarcodeDetector({ formats: ["qr_code"] });
-
-            const scanLoop = async () => {
-                if (!qrStream) return;
-
-                try {
-                    const barcodes = await detector.detect(video);
-                    if (barcodes.length > 0) {
-                        const qrValue = barcodes[0].rawValue;
-                        resultBox.textContent = "QR detectado: " + qrValue;
-
-                        stopQRScanner();
-                    }
-                } catch (err) { }
-
-                requestAnimationFrame(scanLoop);
-            };
-
-            scanLoop();
-
-        } catch (err) {
-            alert("No se pudo acceder a la cámara");
-            console.error(err);
-        }
-    }
-
-    function stopQRScanner() {
-        if (qrStream) {
-            qrStream.getTracks().forEach(t => t.stop());
-            qrStream = null;
-        }
-    }
-
-    // Detener escaneo al cerrar modal
-    qrModalEl.addEventListener("hidden.bs.modal", stopQRScanner);
-
-
-    // Renderizar alertas
-    function renderAlerts() {
-        const alertsList = qs("alerts-list");
-        const alerts = beds.filter(b => b.state === "alert");
-
-        qs("alerts-count").textContent = alerts.length;
-
-        alertsList.innerHTML = "";
-
-        alerts.forEach(b => {
-            const div = document.createElement("div");
-            div.className =
-                "card-panel status-occupied p-2 mb-2 d-flex justify-content-between align-items-center";
-
-            div.innerHTML = `
-        <div>
-          <i class="bi bi-hospital-bed me-2"></i>
-          <strong>${escapeHtml(b.name)}</strong> - ${escapeHtml(b.room)}
-        </div>
-        <button class="btn btn-sm btn-outline-danger" data-id="${b.id}">
-          <i class="bi bi-x"></i>
-        </button>
-      `;
-
-            alertsList.appendChild(div);
-        });
-
-        // botón cerrar alerta
-        alertsList.querySelectorAll("button[data-id]").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                const id = Number(e.currentTarget.dataset.id);
-                const item = beds.find(b => b.id === id);
-
-                if (item) {
-                    item.state = "occupied";
-                    renderAll();
-                }
-            });
-        });
-    }
-
-    // Renderizar cards de camas
-    function renderBeds() {
-        const grid = qs("beds-grid");
-        grid.innerHTML = "";
-
-        qs("beds-count").textContent = beds.length;
-
-        beds.forEach(b => {
-            const col = document.createElement("div");
-            col.className = "col-12 col-sm-6 col-md-4 col-lg-3";
-
-            const alertClass = b.state === "alert" ? "status-occupied" : "";
-
-            col.innerHTML = `
-        <div class="beds-card p-3 h-100 ${alertClass}">
-          <h5 class="mb-1">
-            <i class="bi bi-hospital-bed me-2"></i>
-            ${escapeHtml(b.name)}
-          </h5>
-          <div class="text-muted">${escapeHtml(b.room)}</div>
-          <div class="mt-3">
-            ${badgeForState(b.state)}
-          </div>
-        </div>
-      `;
-
-            grid.appendChild(col);
-        });
-    }
-
-    function badgeForState(state) {
-        if (state === "alert") return `<span class="state-badge state-occupied">Alerta</span>`;
-        if (state === "occupied") return `<span class="state-badge state-occupied">Ocupada</span>`;
-        return `<span class="state-badge state-available">Disponible</span>`;
-    }
-
-    function renderAll() {
-        renderAlerts();
-        renderBeds();
-    }
-
-    document.addEventListener("DOMContentLoaded", renderAll);
-
-})();
-*/
