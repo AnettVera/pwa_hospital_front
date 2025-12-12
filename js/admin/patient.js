@@ -355,16 +355,23 @@ async function loadAllBedsWithStatus() {
     Toast && Toast.show && Toast.show("Se requiere conexión para cargar camas", "info");
     return;
   }
+
   try {
     const res = await fetch(`${API_BEDS}/status`, { method: "GET", headers: getHeaders() });
+
     if (res.ok) {
       const json = await res.json();
-      allBedsWithStatus = json.data || [];
+
+      // Filtrar solo camas desocupadas
+      allBedsWithStatus = (json.data || []).filter(bed => bed.occupied === false);
+
+      console.log("Camas desocupadas:", allBedsWithStatus);
     }
   } catch (e) {
     console.error("Error al cargar camas", e);
   }
 }
+
 
 async function loadAllNurses() {
   if (!navigator.onLine) {
