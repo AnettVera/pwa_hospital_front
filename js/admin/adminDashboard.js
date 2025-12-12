@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = "/modules/auth/login.html";
     }
     loadDashboardData();
-    
+
     // Inicializar notificaciones Firebase para admin
     await initializeNotifications();
 });
@@ -106,7 +106,7 @@ function updateMetrics(bedsData, patientsData, nursesData, alertsData) {
 
 function updateRoomsStatus(roomsData, bedsData) {
     const roomsAccordion = document.getElementById("roomsAccordion");
-    
+
     if (!roomsAccordion || !roomsData) return;
     let roomsArray = Array.isArray(roomsData) ? roomsData : (roomsData.data || Object.values(roomsData));
     if (!Array.isArray(roomsArray)) {
@@ -119,7 +119,7 @@ function updateRoomsStatus(roomsData, bedsData) {
     roomsAccordion.innerHTML = "";
 
     roomsArray.forEach((room, index) => {
-        
+
         const bedsInRoom = Array.isArray(bedsArray)
             ? bedsArray.filter(bed => bed.roomId === room.id || bed.room?.id === room.id)
             : [];
@@ -138,31 +138,31 @@ function updateRoomsStatus(roomsData, bedsData) {
                      aria-labelledby="heading${index}" data-bs-parent="#roomsAccordion">
                     <div class="accordion-body">
                         <div class="d-flex gap-3 mb-2 flex-wrap">
-                            ${bedsInRoom.length > 0 
-                                ? bedsInRoom.map(bed => {
-                                    // Normalizamos el estado de ocupación sin depender del nombre exacto
-                                    const rawOccupied = bed.isOccupied ?? bed.occupied ?? bed.status;
-                                    const normalizedOccupied = (() => {
-                                        if (typeof rawOccupied === "boolean") return rawOccupied;
-                                        if (typeof rawOccupied === "number") return rawOccupied !== 0;
-                                        if (typeof rawOccupied === "string") {
-                                            const value = rawOccupied.toLowerCase();
-                                            return value === "true" || value === "ocupada" || value === "occupied" || value === "1";
-                                        }
-                                        return false;
-                                    })();
-                                    const isAvailable = !normalizedOccupied;
-                                    return `
+                            ${bedsInRoom.length > 0
+                ? bedsInRoom.map(bed => {
+                    // Normalizamos el estado de ocupación sin depender del nombre exacto
+                    const rawOccupied = bed.isOccupied ?? bed.occupied ?? bed.status;
+                    const normalizedOccupied = (() => {
+                        if (typeof rawOccupied === "boolean") return rawOccupied;
+                        if (typeof rawOccupied === "number") return rawOccupied !== 0;
+                        if (typeof rawOccupied === "string") {
+                            const value = rawOccupied.toLowerCase();
+                            return value === "true" || value === "ocupada" || value === "occupied" || value === "1";
+                        }
+                        return false;
+                    })();
+                    const isAvailable = !normalizedOccupied;
+                    return `
                                         <div class="room-box">
-                                            <h5><i class="bi bi-bed"></i> ${bed.bedLabel }</h5>
-                                            <span class="room-status ${isAvailable ? 'status-status' : 'status-occupied'}">
+                                            <h5><i class="bi bi-bed"></i> ${bed.bedLabel}</h5>
+                                            <span class="room-status ${isAvailable ? 'status-available2' : 'status-occupied'}">
                                                 ${isAvailable ? 'Disponible' : 'Ocupada'}
                                             </span>
                                         </div>
                                     `;
-                                }).join('')
-                                : `<p class="text-muted">No hay camas registradas</p>`
-                            }
+                }).join('')
+                : `<p class="text-muted">No hay camas registradas</p>`
+            }
                         </div>
                     </div>
                 </div>
@@ -191,11 +191,11 @@ async function initializeNotifications() {
         const initialized = await initializeAdminNotifications(handleNewNotification);
 
         if (initialized) {
-            Toast && Toast.show 
+            Toast && Toast.show
                 ? Toast.show("Notificaciones activadas correctamente", "success")
                 : console.log("Notificaciones activadas");
         } else {
-            Toast && Toast.show 
+            Toast && Toast.show
                 ? Toast.show("No se pudieron activar las notificaciones", "warning")
                 : console.warn("No se pudieron activar las notificaciones");
         }
@@ -261,8 +261,8 @@ function logout() {
     // Limpiar token FCM al cerrar sesión
     import('../notification/notification-admin.js').then(({ clearFCMToken }) => {
         clearFCMToken();
-    }).catch(() => {});
-    
+    }).catch(() => { });
+
     localStorage.clear();
     // Redirigir al login
     window.location.href = "./../../index.html";
